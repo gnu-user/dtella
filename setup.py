@@ -82,7 +82,27 @@ if sys.platform == 'darwin':
     import py2app
 elif sys.platform == 'win32':
     import py2exe
-    patch_nsi_template()
+    # Generate NSI file from template, replacing name and version
+    # with data from local_config.
+
+    dt_name = local.hub_name
+    dt_version = local.version
+    dt_simplename = local.build_prefix + local.version
+
+    wfile = file("installer_win/dtella.nsi", "w")
+
+    for line in file("installer_win/dtella.template.nsi"):
+        if "PATCH_ME" in line:
+            if "PRODUCT_NAME" in line:
+                line = line.replace("PATCH_ME", dt_name)
+            elif "PRODUCT_VERSION" in line:
+                line = line.replace("PATCH_ME", dt_version)
+            elif "PRODUCT_SIMPLENAME" in line:
+                line = line.replace("PATCH_ME", dt_simplename)
+            else:
+                raise Error("Unpatchable NSI line: %s" % line)
+        wfile.write(line)
+    wfile.close()
 else:
     print "Unknown platform: %s" % sys.platform
     sys.exit(-1)
